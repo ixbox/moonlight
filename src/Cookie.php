@@ -8,6 +8,8 @@ use Stringable;
 
 class Cookie implements Stringable
 {
+    use FluentMethod;
+
     const SAME_SITE_LAX = 'Lax';
     const SAME_SITE_STRICT = 'Strict';
     const SAME_SITE_NONE = 'None';
@@ -20,6 +22,11 @@ class Cookie implements Stringable
         self::SAME_SITE_NONE,
     ];
 
+    /**
+     * @param string $name
+     * @param string $value
+     * @param array{expires?:int,path?:string,domain?:string,secure?:bool,httponly?:bool,samesite?:string} $options
+     */
     public function __construct(
         private string $name,
         private string $value,
@@ -34,16 +41,25 @@ class Cookie implements Stringable
         assert(in_array($this->options['samesite'] ?? self::SAME_SITE_DEFAULT, self::SAME_SITE_VALUES, true), 'SameSite must be one of Lax, Strict, or None');
     }
 
+    /**
+     * @return string
+     */
     public function getName(): string
     {
         return $this->name;
     }
 
+    /**
+     * @return string
+     */
     public function getValue(): string
     {
         return $this->value;
     }
 
+    /**
+     * @return array{expires?:int,path?:string,domain?:string,secure?:bool,httponly?:bool,samesite?:string}
+     */
     public function getOptions(): array
     {
         return $this->options;
@@ -88,49 +104,5 @@ class Cookie implements Stringable
         }
 
         return implode('; ', $parts);
-    }
-
-    public function withExpires(int $expires): self
-    {
-        assert($expires >= 0, 'Expires must be greater than or equal to 0');
-        $clone = clone $this;
-        $clone->options['expires'] = $expires;
-        return $clone;
-    }
-
-    public function withPath(string $path): self
-    {
-        $clone = clone $this;
-        $clone->options['path'] = $path;
-        return $clone;
-    }
-
-    public function withDomain(string $domain): self
-    {
-        $clone = clone $this;
-        $clone->options['domain'] = $domain;
-        return $clone;
-    }
-
-    public function withSecure(bool $secure): self
-    {
-        $clone = clone $this;
-        $clone->options['secure'] = $secure;
-        return $clone;
-    }
-
-    public function withHttpOnly(bool $httpOnly): self
-    {
-        $clone = clone $this;
-        $clone->options['httponly'] = $httpOnly;
-        return $clone;
-    }
-
-    public function withSameSite(string $sameSite): self
-    {
-        assert(in_array($sameSite, self::SAME_SITE_VALUES, true));
-        $clone = clone $this;
-        $clone->options['samesite'] = $sameSite;
-        return $clone;
     }
 }

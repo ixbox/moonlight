@@ -20,6 +20,8 @@ class CookieTest extends TestCase
             'samesite' => 'Strict',
         ]);
 
+        $cookie = $cookie->withExpires(1);
+
         $this->assertEquals(
             'Name=Value; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; Path=/path; Domain=example.com; Secure; HttpOnly; SameSite=Strict',
             (string) $cookie,
