@@ -1,77 +1,85 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ixbox\Moonlight;
 
+use InvalidArgumentException;
+
 /**
- * @property array{expires?:int,path?:string,domain?:string,secure?:bool,httponly?:bool,samesite?:string} $options
+ * Immutable "with*" setters for cookie attributes.
+ *
+ * @phpstan-import-type CookieOptions from Options
  */
 trait FluentMethod
 {
     /**
-     * @param int $expires
-     * @return static
+     * @return CookieOptions
+     */
+    public function getOptions(): array
+    {
+        return $this->options;
+    }
+
+    /**
+     * @param int $expires Unix timestamp. 0 means a session cookie.
+     * @throws InvalidArgumentException
      */
     public function withExpires(int $expires): static
     {
-        assert($expires >= 0, 'Expires must be greater than or equal to 0');
-        $clone = clone $this;
-        $clone->options['expires'] = $expires;
-        return $clone;
+        return $this->withOption('expires', $expires);
     }
 
     /**
-     * @param string $path
-     * @return static
+     * @throws InvalidArgumentException
      */
     public function withPath(string $path): static
     {
-        $clone = clone $this;
-        $clone->options['path'] = $path;
-        return $clone;
+        return $this->withOption('path', $path);
     }
 
     /**
-     * @param string $domain
-     * @return static
+     * @throws InvalidArgumentException
      */
     public function withDomain(string $domain): static
     {
-        $clone = clone $this;
-        $clone->options['domain'] = $domain;
-        return $clone;
+        return $this->withOption('domain', $domain);
     }
 
-    /**
-     * @param bool $secure
-     * @return static
-     */
-    public function withSecure(bool $secure): static
+    public function withSecure(bool $secure = true): static
     {
-        $clone = clone $this;
-        $clone->options['secure'] = $secure;
-        return $clone;
+        return $this->withOption('secure', $secure);
     }
 
-    /**
-     * @param bool $httpOnly
-     * @return static
-     */
-    public function withHttpOnly(bool $httpOnly): static
+    public function withHttpOnly(bool $httpOnly = true): static
     {
-        $clone = clone $this;
-        $clone->options['httponly'] = $httpOnly;
-        return $clone;
+        return $this->withOption('httponly', $httpOnly);
     }
 
     /**
-     * @param string $sameSite
-     * @return static
+     * @param 'Lax'|'Strict'|'None' $sameSite
+     * @throws InvalidArgumentException
      */
     public function withSameSite(string $sameSite): static
     {
-        assert(in_array($sameSite, Cookie::SAME_SITE_VALUES, true));
+        return $this->withOption('samesite', $sameSite);
+    }
+
+    public function withPartitioned(bool $partitioned = true): static
+    {
+        return $this->withOption('partitioned', $partitioned);
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     */
+    private function withOption(string $key, mixed $value): static
+    {
+        $options = $this->options;
+        $options[$key] = $value;
+
         $clone = clone $this;
-        $clone->options['samesite'] = $sameSite;
+        $clone->options = Options::validate($options);
         return $clone;
     }
 }

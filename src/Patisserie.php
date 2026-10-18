@@ -1,40 +1,40 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ixbox\Moonlight;
 
-class Patisserie
+use InvalidArgumentException;
+
+/**
+ * A cookie factory that holds default attributes shared by the cookies it bakes.
+ *
+ * @phpstan-import-type CookieOptions from Options
+ */
+final class Patisserie
 {
     use FluentMethod;
 
+    /** @var CookieOptions */
+    private array $options;
+
     /**
-     * @param array{expires?:int,path?:string,domain?:string,secure?:bool,httponly?:bool,samesite?:string} $options
+     * @param array<string, mixed> $options Default options. See {@see Options} for the accepted keys.
+     * @throws InvalidArgumentException
      */
-    public function __construct(
-        private array $options = [],
-    ) {
-        assert(is_int($this->options['expires'] ?? 0), 'Expires must be an integer');
-        assert(($this->options['expires'] ?? 0) >= 0, 'Expires must be greater than or equal to 0');
-        assert(is_string($this->options['path'] ?? ''), 'Path must be a string');
-        assert(is_string($this->options['domain'] ?? ''), 'Domain must be a string');
-        assert(is_bool($this->options['secure'] ?? false), 'Secure must be a boolean');
-        assert(is_bool($this->options['httponly'] ?? false), 'HttpOnly must be a boolean');
-        assert(in_array($this->options['samesite'] ?? Cookie::SAME_SITE_DEFAULT, Cookie::SAME_SITE_VALUES, true), 'SameSite must be one of Lax, Strict, or None');
+    public function __construct(array $options = [])
+    {
+        $this->options = Options::validate($options);
     }
 
     /**
-     * @param string $name
-     * @param string $value
-     * @param array{expires?:int,path?:string,domain?:string,secure?:bool,httponly?:bool,samesite?:string} $options
-     * @return Cookie
+     * Bakes a cookie. The given options override the defaults of this patisserie.
+     *
+     * @param array<string, mixed> $options
+     * @throws InvalidArgumentException
      */
-    public function bake(string $name, string $value, array $options = []): Cookie
+    public function bake(string $name, string $value = '', array $options = []): Cookie
     {
-        $options = array_merge($this->options, $options);
-
-        return new Cookie(
-            $name,
-            $value,
-            $options,
-        );
+        return new Cookie($name, $value, array_merge($this->options, $options));
     }
 }
